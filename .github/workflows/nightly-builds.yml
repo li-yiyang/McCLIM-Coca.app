@@ -11,15 +11,17 @@ on:
     - cron: '0 0 * * *'
   workflow_dispatch:
     inputs:
-      mac:
-        description: 'Run macOS build'
+      force_build:
+        description: 'Build even if no new commits'
         type: boolean
         default: true
 
 permissions:
   contents: write
 
-concurrency: nightly-${{ github.workflow }}
+concurrency:
+  group: nightly-${{ github.workflow }}
+  cancel-in-progress: true
 
 env:
   REPO_URL: https://codeberg.org/li-yiyang/McCLIM.git
@@ -27,11 +29,12 @@ env:
 jobs:
   mac:
     name: Nightly Build (macOS)
-    if: github.event_name == 'schedule' || input.mac == true
     runs-on: macos-latest
     outputs:
       built: ${{ steps.flag.outputs.built }}
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
       - name: Fetch McCLIM-Coca
         run: |
           mkdir -p ~/common-lisp/
@@ -41,12 +44,15 @@ jobs:
         id: diff
         working-directory: ~/common-lisp/McCLIM
         run: |
-          COMMIT_COUNT=$(git log --since="24 hours ago" --oneline | wc -l)
-          echo "$COMMIT_COUNT commits since last nightly build"
-          if [ "$COMMIT_COUNT" -gt 0 ]; then
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ "${{ inputs.force_build }}" == "true" ]; then
             echo "skip=false" >> $GITHUB_OUTPUT
           else
-            echo "skip=true"  >> $GITHUB_OUTPUT
+            COMMIT_COUNT=$(git log --since="24 hours ago" --oneline | wc -l)
+            if [ "$COMMIT_COUNT" -gt 0 ]; then
+              echo "skip=false" >> $GITHUB_OUTPUT
+            else
+              echo "skip=true"  >> $GITHUB_OUTPUT
+            fi
           fi
 
       - name: No changes — skip build
@@ -58,25 +64,31 @@ jobs:
         run: |
           brew install sbcl tree-sitter
           curl -O https://beta.quicklisp.org/quicklisp.lisp
-          sbcl --non-interactive --load quicklisp.lisp --eval "(quicklisp-quickstart:install)"
+          sbcl --non-interactive \
+               --load quicklisp.lisp \
+               --eval "(quicklisp-quickstart:install)"
 
       - name: Build McCLIM-Coca.app
         if: steps.diff.outputs.skip != 'true'
         run: |
           sbcl --non-interactive \
                --load "~/quicklisp/setup.lisp" \
-               --eval "(asdf:make :mcclim-coca/app)" && \
-          cd ~/common-lisp/McCLIM/Backends/coca/bin/ && \
+               --eval "(asdf:make :mcclim-coca/app)"
+
+          cd ~/common-lisp/McCLIM/Backends/coca/bin/
           tar czvf McCLIM.app.tar.gz McCLIM.app
-          test -f ~/common-lisp/McCLIM/Backends/coca/bin/McCLIM.app.tar.gz
 
       - name: Upload artifact (macOS)
         if: steps.diff.outputs.skip != 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: nightly-${{ github.run_id }}
-          name: McCLIM-Coca.app
+          name: McCLIM-Coca/App Nightly Build
+          prerelease: true
           files: ~/common-lisp/McCLIM/Backends/coca/bin/McCLIM.app.tar.gz
-          body: "Automated nightly build McCLIM-Coca.app"
+          body: |
+            Automated nightly build McCLIM-Coca.app
+            Last updated ${{ github.event.head_commit.timestamp || 'Manual Trigger' }}
+          make_latest: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

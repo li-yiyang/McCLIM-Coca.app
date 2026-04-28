@@ -59,6 +59,8 @@ jobs:
 
       - name: Set up Common Lisp environment
         uses: 40ants/setup-lisp@v4
+        with:
+          asdf-system: deploy cffi cl-str optima trivial-main-thread trivial-garbage bordeaux-threads lparallel
 
       - name: Build McCLIM-Coca.app
         if: steps.diff.outputs.skip != 'true'

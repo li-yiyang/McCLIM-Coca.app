@@ -1,3 +1,9 @@
+# Credits:
+# This CI workflow is modified from
+# https://github.com/lem-project/lem
+# .github/workflows/nightly-builds.yml
+#
+# I removed the other platform and focus only macOS platform.
 name: Nightly Builds
 
 on:
@@ -20,9 +26,6 @@ concurrency:
   group: nightly-${{ github.workflow }}
   cancel-in-progress: true
 
-env:
-  LISP: sbcl-bin
-
 jobs:
   mac:
     name: Nightly Build (macOS)
@@ -36,7 +39,6 @@ jobs:
         run: |
           mkdir -p ~/common-lisp/
           git clone https://codeberg.org/li-yiyang/McCLIM.git ~/common-lisp/McCLIM
-          # git clone https://codeberg.org/shinmera/deploy.git  ~/common-lisp/deploy
 
       - name: Check changes since last nightly
         id: diff
@@ -58,14 +60,21 @@ jobs:
         run: echo "No changes since last nightly. Skipping."
 
       - name: Set up Common Lisp environment
-        uses: 40ants/setup-lisp@v4
-        with:
-          asdf-system: deploy cffi cl-str optima trivial-main-thread trivial-garbage bordeaux-threads lparallel
+        if: steps.diff.outputs.skip != 'true'
+        run: |
+          brew install sbcl tree-sitter
+          curl -O https://beta.quicklisp.org/quicklisp.lisp
+          sbcl --non-interactive \
+               --load quicklisp.lisp \
+               --eval "(quicklisp-quickstart:install)"
 
       - name: Build McCLIM-Coca.app
         if: steps.diff.outputs.skip != 'true'
         run: |
-          ros -e "(asdf:make :mcclim-coca/app)"
+          sbcl --non-interactive \
+               --load "$HOME/quicklisp/setup.lisp" \
+               --eval "(ql-dist:install-dist \"http://dist.shirakumo.org/shirakumo.txt\" :prompt nil)" \
+               --eval "(asdf:make :mcclim-coca/app)"
 
           cd $HOME/common-lisp/McCLIM/Backends/coca/bin/
           tar czvf McCLIM.app.tar.gz McCLIM.app

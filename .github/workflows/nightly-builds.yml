@@ -42,8 +42,8 @@ jobs:
 
       - name: Check changes since last nightly
         id: diff
-        working-directory: ~/common-lisp/McCLIM
         run: |
+          cd $HOME/common-lisp/McCLIM
           if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ "${{ inputs.force_build }}" == "true" ]; then
             echo "skip=false" >> $GITHUB_OUTPUT
           else
@@ -75,7 +75,7 @@ jobs:
                --load "~/quicklisp/setup.lisp" \
                --eval "(asdf:make :mcclim-coca/app)"
 
-          cd ~/common-lisp/McCLIM/Backends/coca/bin/
+          cd $HOME/common-lisp/McCLIM/Backends/coca/bin/
           tar czvf McCLIM.app.tar.gz McCLIM.app
 
       - name: Upload artifact (macOS)
@@ -85,7 +85,7 @@ jobs:
           tag_name: nightly-${{ github.run_id }}
           name: McCLIM-Coca/App Nightly Build
           prerelease: true
-          files: ~/common-lisp/McCLIM/Backends/coca/bin/McCLIM.app.tar.gz
+          files: $HOME/common-lisp/McCLIM/Backends/coca/bin/McCLIM.app.tar.gz
           body: |
             Automated nightly build McCLIM-Coca.app
             Last updated ${{ github.event.head_commit.timestamp || 'Manual Trigger' }}

@@ -72,7 +72,7 @@ jobs:
         if: steps.diff.outputs.skip != 'true'
         run: |
           sbcl --non-interactive \
-               --load "~/quicklisp/setup.lisp" \
+               --load "$HOME/quicklisp/setup.lisp" \
                --eval "(asdf:make :mcclim-coca/app)"
 
           cd $HOME/common-lisp/McCLIM/Backends/coca/bin/

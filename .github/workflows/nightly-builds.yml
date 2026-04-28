@@ -74,6 +74,7 @@ jobs:
           sbcl --non-interactive \
                --load "$HOME/quicklisp/setup.lisp" \
                --eval "(ql-dist:install-dist \"http://dist.shirakumo.org/shirakumo.txt\" :prompt nil)" \
+               --eval "(ql:quickload :mcclim-coca)" \
                --eval "(asdf:make :mcclim-coca/app)"
 
           cd $HOME/common-lisp/McCLIM/Backends/coca/bin/

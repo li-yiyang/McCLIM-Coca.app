@@ -23,9 +23,6 @@ concurrency:
   group: nightly-${{ github.workflow }}
   cancel-in-progress: true
 
-env:
-  REPO_URL: https://codeberg.org/li-yiyang/McCLIM.git
-
 jobs:
   mac:
     name: Nightly Build (macOS)
@@ -38,7 +35,8 @@ jobs:
       - name: Fetch McCLIM-Coca
         run: |
           mkdir -p ~/common-lisp/
-          git clone ${{ env.REPO_URL }} ~/common-lisp/McCLIM
+          git clone https://codeberg.org/li-yiyang/McCLIM.git ~/common-lisp/McCLIM
+          git clone https://codeberg.org/shinmera/deploy.git  ~/common-lisp/deploy
 
       - name: Check changes since last nightly
         id: diff

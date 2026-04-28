@@ -59,8 +59,6 @@ jobs:
 
       - name: Set up Common Lisp environment
         uses: 40ants/setup-lisp@v4
-        with:
-          asdf-system: mcclim-coca
 
       - name: Build McCLIM-Coca.app
         if: steps.diff.outputs.skip != 'true'

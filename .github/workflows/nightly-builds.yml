@@ -39,7 +39,7 @@ jobs:
         run: |
           mkdir -p ~/common-lisp/
           git clone https://codeberg.org/li-yiyang/McCLIM.git ~/common-lisp/McCLIM
-          git clone https://codeberg.org/shinmera/deploy.git  ~/common-lisp/deploy
+          # git clone https://codeberg.org/shinmera/deploy.git  ~/common-lisp/deploy
 
       - name: Check changes since last nightly
         id: diff
@@ -74,7 +74,7 @@ jobs:
         run: |
           sbcl --non-interactive \
                --load "$HOME/quicklisp/setup.lisp" \
-               --eval "(ql:update-dist \"quicklisp\")" \
+               --eval "(ql-dist:install-dist \"http://dist.ultralisp.org/\" :prompt nil)" \
                --eval "(asdf:make :mcclim-coca/app)"
 
           cd $HOME/common-lisp/McCLIM/Backends/coca/bin/

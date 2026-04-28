@@ -1,0 +1,6 @@
+#+title: [CI Only] McCLIM-Coca.app
+#+author: 凉凉
+* About
+This repo is just used to build [[https://codeberg.org/li-yiyang/McCLIM][McCLIM-Coca/App]].
+
+The workflow learnt alot from [[https://github.com/lem-project/lem/blob/main/scripts/macos-deploy.bash][Lem]]'s. 

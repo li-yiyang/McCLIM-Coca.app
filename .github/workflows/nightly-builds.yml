@@ -1,0 +1,82 @@
+# Credits:
+# This CI workflow is modified from
+# https://github.com/lem-project/lem
+# .github/workflows/nightly-builds.yml
+#
+# I removed the other platform and focus only macOS platform.
+name: Nightly Builds
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+    inputs:
+      mac:
+        description: 'Run macOS build'
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency: nightly-${{ github.workflow }}
+
+env:
+  REPO_URL: https://codeberg.org/li-yiyang/McCLIM.git
+
+jobs:
+  mac:
+    name: Nightly Build (macOS)
+    if: github.event_name == 'schedule' || input.mac == true
+    runs-on: macos-latest
+    outputs:
+      built: ${{ steps.flag.outputs.built }}
+    steps:
+      - name: Fetch McCLIM-Coca
+        run: |
+          mkdir -p ~/common-lisp/
+          git clone ${{ env.REPO_URL }} ~/common-lisp/McCLIM
+
+      - name: Check changes since last nightly
+        id: diff
+        working-directory: ~/common-lisp/McCLIM
+        run: |
+          COMMIT_COUNT=$(git log --since="24 hours ago" --oneline | wc -l)
+          echo "$COMMIT_COUNT commits since last nightly build"
+          if [ "$COMMIT_COUNT" -gt 0 ]; then
+            echo "skip=false" >> $GITHUB_OUTPUT
+          else
+            echo "skip=true"  >> $GITHUB_OUTPUT
+          fi
+
+      - name: No changes — skip build
+        if: steps.diff.outputs.skip == 'true'
+        run: echo "No changes since last nightly. Skipping."
+
+      - name: Set up Common Lisp environment
+        if: steps.diff.outputs.skip != 'true'
+        run: |
+          brew install sbcl tree-sitter
+          curl -O https://beta.quicklisp.org/quicklisp.lisp
+          sbcl --non-interactive --load quicklisp.lisp --eval "(quicklisp-quickstart:install)"
+
+      - name: Build McCLIM-Coca.app
+        if: steps.diff.outputs.skip != 'true'
+        run: |
+          sbcl --non-interactive \
+               --load "~/quicklisp/setup.lisp" \
+               --eval "(asdf:make :mcclim-coca/app)" && \
+          cd ~/common-lisp/McCLIM/Backends/coca/bin/ && \
+          tar czvf McCLIM.app.tar.gz McCLIM.app
+          test -f ~/common-lisp/McCLIM/Backends/coca/bin/McCLIM.app.tar.gz
+
+      - name: Upload artifact (macOS)
+        if: steps.diff.outputs.skip != 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: nightly-${{ github.run_id }}
+          name: McCLIM-Coca.app
+          files: ~/common-lisp/McCLIM/Backends/coca/bin/McCLIM.app.tar.gz
+          body: "Automated nightly build McCLIM-Coca.app"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

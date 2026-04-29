@@ -91,7 +91,8 @@ jobs:
           tag_name: nightly-${{ github.run_id }}
           name: McCLIM-Coca/App Nightly Build
           prerelease: true
-          files: $HOME/common-lisp/McCLIM/Backends/coca/bin/McCLIM.app.tar.gz
+          files: |
+            ~/common-lisp/McCLIM/Backends/coca/bin/McCLIM.app.tar.gz
           body: |
             Automated nightly build McCLIM-Coca.app
             Last updated ${{ github.event.head_commit.timestamp || 'Manual Trigger' }}

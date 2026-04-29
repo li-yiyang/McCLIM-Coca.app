@@ -39,6 +39,9 @@ jobs:
         run: |
           mkdir -p ~/common-lisp/
           git clone https://codeberg.org/li-yiyang/McCLIM.git ~/common-lisp/McCLIM
+          # trivial patch, why cannot load?
+          git clone https://github.com/xach/zpb-ttf.git       ~/common-lisp/zpb-ttf
+          git clone https://github.com/sharplispers/clx.git   ~/common-lisp/clx
 
       - name: Check changes since last nightly
         id: diff

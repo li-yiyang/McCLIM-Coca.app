@@ -67,7 +67,7 @@ jobs:
           sbcl --non-interactive \
                --load quicklisp.lisp \
                --eval "(quicklisp-quickstart:install)" \
-               --eval "(ql-dist:install-dist \"http://dist.ultralisp.org/\" :prompt nil)"
+               --eval "(ql-dist:install-dist \"http://dist.ultralisp.org/\" :prompt nil)" \
                --eval "(ql:update-all-dists)" \
                --eval "(ql:quickload :mcclim-coca)"
 

@@ -65,9 +65,10 @@ jobs:
       - name: Set up Common Lisp environment
         if: steps.diff.outputs.skip != 'true'
         run: |
-          brew install sbcl
+          brew install li-yiyang/sbcl-goodies/sbcl-goodies
           curl -O https://beta.quicklisp.org/quicklisp.lisp
-          sbcl --non-interactive \
+          sbcl-goodies \
+               --non-interactive \
                --load quicklisp.lisp \
                --eval "(quicklisp-quickstart:install)" \
                --eval "(ql-dist:install-dist \"http://dist.ultralisp.org/\" :prompt nil)" \
@@ -77,7 +78,8 @@ jobs:
       - name: Build McCLIM-Coca.app
         if: steps.diff.outputs.skip != 'true'
         run: |
-          sbcl --non-interactive \
+          sbcl-goodies \
+               --non-interactive \
                --load "$HOME/quicklisp/setup.lisp" \
                --eval "(asdf:make :mcclim-coca/app)"
 
@@ -95,7 +97,15 @@ jobs:
             ~/common-lisp/McCLIM/Backends/coca/bin/McCLIM.app.tar.gz
           body: |
             Automated nightly build McCLIM-Coca.app
-            Last updated ${{ github.event.head_commit.timestamp || 'Manual Trigger' }}
+
+            If complain about broken application, try:
+
+            ```shell
+            xattr -d -r com.apple.quaratine McCLIM.app
+            ```
+
+            Last updated ${{ github.event.head_commit.timestamp || 'Manual Trigger' }}.
+            Built with homebrew tap SBCL-Goodies (li-yiyang/sbcl-goodies). 
           make_latest: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

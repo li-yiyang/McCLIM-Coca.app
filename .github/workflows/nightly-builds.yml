@@ -39,8 +39,6 @@ jobs:
         run: |
           mkdir -p ~/common-lisp/
           git clone https://codeberg.org/li-yiyang/McCLIM.git ~/common-lisp/McCLIM
-          # trivial patch, why cannot load? 
-          git clone https://github.com/xach/zpb-ttf.git       ~/common-lisp/zpb-ttf
 
       - name: Check changes since last nightly
         id: diff
@@ -68,14 +66,16 @@ jobs:
           curl -O https://beta.quicklisp.org/quicklisp.lisp
           sbcl --non-interactive \
                --load quicklisp.lisp \
-               --eval "(quicklisp-quickstart:install)"
+               --eval "(quicklisp-quickstart:install)" \
+               --eval "(ql-dist:install-dist \"http://dist.ultralisp.org/\" :prompt nil)"
+               --eval "(ql:update-all-dists)" \
+               --eval "(ql:quickload :mcclim-coca)"
 
       - name: Build McCLIM-Coca.app
         if: steps.diff.outputs.skip != 'true'
         run: |
           sbcl --non-interactive \
                --load "$HOME/quicklisp/setup.lisp" \
-               --eval "(ql:quickload :mcclim-coca)" \
                --eval "(asdf:make :mcclim-coca/app)"
 
           cd $HOME/common-lisp/McCLIM/Backends/coca/bin/

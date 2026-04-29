@@ -39,6 +39,8 @@ jobs:
         run: |
           mkdir -p ~/common-lisp/
           git clone https://codeberg.org/li-yiyang/McCLIM.git ~/common-lisp/McCLIM
+          # trivial patch, why cannot load? 
+          git clone https://github.com/xach/zpb-ttf.git       ~/common-lisp/zpb-ttf
 
       - name: Check changes since last nightly
         id: diff
@@ -62,7 +64,7 @@ jobs:
       - name: Set up Common Lisp environment
         if: steps.diff.outputs.skip != 'true'
         run: |
-          brew install sbcl tree-sitter
+          brew install sbcl
           curl -O https://beta.quicklisp.org/quicklisp.lisp
           sbcl --non-interactive \
                --load quicklisp.lisp \
@@ -73,7 +75,6 @@ jobs:
         run: |
           sbcl --non-interactive \
                --load "$HOME/quicklisp/setup.lisp" \
-               --eval "(ql-dist:install-dist \"http://dist.shirakumo.org/shirakumo.txt\" :prompt nil)" \
                --eval "(ql:quickload :mcclim-coca)" \
                --eval "(asdf:make :mcclim-coca/app)"
 

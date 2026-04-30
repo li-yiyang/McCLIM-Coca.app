@@ -101,11 +101,12 @@ jobs:
             If complain about broken application, try:
 
             ```shell
-            xattr -d -r com.apple.quaratine McCLIM.app
+            xattr -d -r com.apple.quarantine McCLIM.app
             ```
 
             Last updated ${{ github.event.head_commit.timestamp || 'Manual Trigger' }}.
-            Built with homebrew tap SBCL-Goodies (li-yiyang/sbcl-goodies). 
+
+            Built with homebrew tap SBCL-Goodies ([li-yiyang/sbcl-goodies](https://github.com/li-yiyang/homebrew-sbcl-goodies)).
           make_latest: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
